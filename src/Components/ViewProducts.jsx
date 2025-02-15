@@ -1,57 +1,58 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import { getLocalStorage,setLocalStorage } from '../utils/localStorage';
+import { getLocalStorage, setLocalStorage } from '../utils/localStorage';
 import { URL } from '../utils/config';
+import '../utils/styles/ViewProducts.css';
 
 const ViewProducts = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const category = queryParams.get('category');
-  const [filteredProds,setFilteredProds]= useState([])
+  const [filteredProds, setFilteredProds] = useState([]);
   const [cat, setCat] = useState(category);
   const [productos, setProductos] = useState([]);
-  const [max, setMax] = useState([]);
-  const [min, setMin] = useState([]);
-  const [categorias, setcategorias] = useState([]);
-  //PONER ALGO PARA FILTRAR LOS PRODUCTOS
+  const [max, setMax] = useState(0);
+  const [min, setMin] = useState(0);
+  const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
     const fetchProd = async () => {
       const local = getLocalStorage("products");
       try {
-        await fetch(URL + "/Products", { credentials: "include" })
-          .then((res) => res.json())
-          .then((data) => {
-            if (!data || data.length === 0) {
-              if (local) setProductos(local.datos);
-            } else {
-              setProductos(data);
-              setFilteredProds(data);
-              setLocalStorage(data, "products");
-            }
-          });
+        const res = await fetch(`${URL}/Products`, { credentials: "include" });
+        const data = await res.json();
+        if (data?.length) {
+          setProductos(data);
+          setFilteredProds(data);
+          setLocalStorage(data, "products");
+        } else if (local) {
+          setProductos(local.datos);
+        }
       } catch (error) {
         console.log(error);
         if (local) setProductos(local.datos);
       }
     };
-    const fetchcat = async () => {
+    
+    const fetchCat = async () => {
       const local = getLocalStorage("category");
       try {
-        await fetch(URL + "/category", { credentials: "include" })
-          .then((res) => res.json())
-          .then((data) => {
-            if (!data) return setcategorias(local.datos);
-            setcategorias(data);
-            setLocalStorage(data, "category");
-          });
+        const res = await fetch(`${URL}/category`, { credentials: "include" });
+        const data = await res.json();
+        if (data) {
+          setCategorias(data);
+          setLocalStorage(data, "category");
+        } else if (local) {
+          setCategorias(local.datos);
+        }
       } catch (error) {
         console.log(error);
       }
     };
+    
     fetchProd();
-    fetchcat();
+    fetchCat();
   }, []);
 
   useEffect(() => {
@@ -59,92 +60,62 @@ const ViewProducts = () => {
   }, [cat, productos]);
 
   const handleFilteredProds = () => {
-    if (!cat) {
-      setFilteredProds(productos);
-      return setMaxMin(productos);
-    }
-    const prods = productos.filter((p) => p.idCat === Number(cat));
+    const prods = cat ? productos.filter((p) => p.idCat === Number(cat)) : productos;
     setFilteredProds(prods);
     setMaxMin(prods);
   };
 
   const setMaxMin = (prods) => {
     if (prods.length === 0) {
-      setMax(0)
-      setMin(0)
-      return
-    };
-    let min = prods[0].price;
-    let max = prods[0].price;
-    for (let i = 1; i < prods.length; i++) {
-      if (prods[i].price < min) {
-        min = prods[i].price;
-      }
-      if (prods[i].price > max) {
-        max = prods[i].price;
-      }
+      setMax(0);
+      setMin(0);
+      return;
     }
-    setMax(max);
-    setMin(min);
-  };
-
-  const searchCat = (id) => {
-    const cat = categorias.find((p) => p.id === id);
-    return cat.description;
+    setMax(Math.max(...prods.map(p => p.price)));
+    setMin(Math.min(...prods.map(p => p.price)));
   };
 
   return (
-    <div>
-      <div
-        style={{ flex: 0.3, padding: "20px", borderRight: "1px solid #ccc" }}
-      >
+    <div className="view-products-container">
+      <aside className="filters">
         <h2>Filtrar Productos</h2>
         <div>
           <label>Categoría:</label>
-          <select onChange={(e) => setCat(e.target.value)}
-            value={cat || ""}>
+          <select onChange={(e) => setCat(e.target.value)} value={cat || ""}>
             <option value="">Todas</option>
             {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {searchCat(c.id)}
-              </option>
+              <option key={c.id} value={c.id}>{c.description}</option>
             ))}
           </select>
         </div>
         <div>
           <label>Precio</label>
-          {<p>min:{min}</p>}
+          <p>Min: {min}</p>
           <input
             type="range"
             min={min}
             max={max}
             step={0.1}
             onChange={(e) => {
-              console.log(e.target.value);
               const maxPrice = e.target.value;
-              setFilteredProds(
-                productos.filter(
-                  (p) => p.price <= maxPrice && (!cat || p.idCat === cat)
-                )
-              );
+              setFilteredProds(productos.filter(p => p.price <= maxPrice && (!cat || p.idCat === Number(cat))));
             }}
           />
-          {<p>max:{max}</p>}
+          <p>Max: {max}</p>
         </div>
-      </div>
-      <div style={{ display: "flex" }}>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ margin: "10%" }}>Productos</h1>
-          {cat && <p>Mostrando productos para la categoría: {cat}</p>}
-          {filteredProds.length > 0 ? (
-            filteredProds.map((p) => <ProductCard key={p.id} product={p} />)
-          ) : (
-            <p>No hay productos disponibles.</p>
-          )}
-        </div>
-      </div>
+      </aside>
+      <main className="products">
+        <h1>Productos</h1>
+        {cat && <p>Mostrando productos para la categoría: {cat}</p>}
+        {filteredProds.length > 0 ? (
+          filteredProds.map((p) => <ProductCard key={p.id} product={p} />)
+        ) : (
+          <p>No hay productos disponibles.</p>
+        )}
+      </main>
     </div>
   );
 };
 
 export default ViewProducts;
+

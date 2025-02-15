@@ -12,6 +12,7 @@ const NavBar = () => {
   const { role, setIsAuthenticated, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSession = async () => {
     if (!isAuthenticated) {
@@ -41,19 +42,15 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
-      <div className="container-fluid d-flex align-items-center justify-content-between">
-        
-        {/* Logo y Barra de Búsqueda */}
+    <nav className="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+      <div className="container-fluid">
         <div className="d-flex align-items-center">
-            <img
-              src={rioColor}
-              alt="Logo"
-              style={{ width: "80px", height: "auto", marginRight:"10px" }}
-              className="rounded-pill"
-            />
-
-          {/* Barra de búsqueda más pequeña */}
+          <img
+            src={rioColor}
+            alt="Logo"
+            style={{ width: "80px", height: "auto", marginRight: "10px" }}
+            className="rounded-pill"
+          />
           <form className="d-flex" onSubmit={handleSearch}>
             <input
               type="text"
@@ -61,7 +58,7 @@ const NavBar = () => {
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "170px" }} 
+              style={{ width: "170px" }}
             />
             <button className="btn btn-outline-light" type="submit">
               Buscar
@@ -69,23 +66,20 @@ const NavBar = () => {
           </form>
         </div>
 
-        {/* Botón de menú para móviles */}
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#collapsibleNavbar"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Links de navegación */}
-        <div className="collapse navbar-collapse justify-content-center" id="collapsibleNavbar" style={{ marginRight:"250px" }}>
-          <ul className="navbar-nav">
+        <div className={`collapse navbar-collapse ${isMenuOpen ? "show" : ""}`} id="collapsibleNavbar">
+          <ul className="navbar-nav ms-auto text-start">
             <li className="nav-item">
-              <Link className="nav-link" to="/Productos" style={{ justifySelf:"initial" }}>Productos</Link>
+              <Link className="nav-link" to="/Productos">Productos</Link>
             </li>
-            {role === 1 && isAuthenticated && (
+            {role >= 1 && isAuthenticated && (
               <>
                 <li className="nav-item">
                   <Link className="nav-link" to="/Sucursales">Sucursales</Link>
@@ -94,35 +88,16 @@ const NavBar = () => {
                   <Link className="nav-link" to="/Clientes">Clientes</Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/Empleados">Empleados</Link>
-                </li>
-                <li className="nav-item">
                   <Link className="nav-link" to="/Proveedores">Proveedores</Link>
                 </li>
-                <li className="nav-item dropdown">
-                  <button className="nav-link dropdown-toggle" id="ventasDropdown">
-                    Ventas
-                  </button>
-                  <ul className="dropdown-menu" aria-labelledby="ventasDropdown">
-                    <li><Link className="dropdown-item" to="/crear_ventas">Crear Venta</Link></li>
-                    <li><Link className="dropdown-item" to="/ventas">Consultar Ventas</Link></li>
-                  </ul>
-                </li>
-              </>
-            )}
-            {role === 2 && isAuthenticated && (
-              <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/Clientes">Clientes</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/Proveedores">Proveedores</Link>
+                  <Link className="nav-link" to="/Usuarios">Usuarios</Link>
                 </li>
                 <li className="nav-item dropdown">
-                  <button className="nav-link dropdown-toggle" id="ventasDropdown">
+                  <button className="nav-link dropdown-toggle" id="ventasDropdown" data-bs-toggle="dropdown">
                     Ventas
                   </button>
-                  <ul className="dropdown-menu" aria-labelledby="ventasDropdown">
+                  <ul className="dropdown-menu">
                     <li><Link className="dropdown-item" to="/crear_ventas">Crear Venta</Link></li>
                     <li><Link className="dropdown-item" to="/ventas">Consultar Ventas</Link></li>
                   </ul>
@@ -132,33 +107,26 @@ const NavBar = () => {
           </ul>
         </div>
 
-        {/* Carrito + Botón de Sesión */}
-        <div className="d-flex align-items-center navbar-nav">
-          {isAuthenticated && (
-            <li className="nav-item dropdown me-2">
-              <button className="nav-link dropdown-toggle d-flex align-items-center" id="cartDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src={cart} alt="cart" style={{ width: "30px", height: "30px" }} />
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="cartDropdown">
-                <li><Link className="dropdown-item" to="/cartShop">Ver Carrito</Link></li>
-              </ul>
-            </li>
-          )}
-
-          {/* Botón de Inicio/Cierre de Sesión */}
+        <div className="d-flex align-items-center">
+          <li className="nav-item me-3">
+            <Link to="/cartShop">
+              <img src={cart} alt="cart" style={{ width: "30px", height: "30px" }} />
+            </Link>
+          </li>
           <li className="nav-item">
             <button className="btn btn-outline-light" onClick={handleSession}>
               {isAuthenticated ? "Cerrar Sesión" : "Iniciar Sesión"}
             </button>
           </li>
         </div>
-
       </div>
     </nav>
   );
 };
 
 export default NavBar;
+
+
 
 
 

@@ -4,10 +4,10 @@ import { URL } from "../utils/config.js";
 import { useAuth } from "./AuthContext";
 
 const Login = () => {
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setLocalRole] = useState("");
+  // const [role, setLocalRole] = useState("");
   const [message, setMessage] = useState("");
   const { setIsAuthenticated, setRole } = useAuth();
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const Login = () => {
     if (username && password) {
       const data = {
         userName: username,
-        password: password,
+        pswHash: password,
       };
       try {
         const res = await fetch(URL + "/login", {
@@ -56,9 +56,11 @@ const Login = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: "400px", marginTop: "50px" }}>
-      <h2 className="text-center">Inicio de sesión</h2>
+    <div className="container" style={{ justifyContent: "center", 
+      textAlign: "center", Width: "800px", marginTop: "50px" }}>
+      
       <form onSubmit={handleLogin}>
+      <h2 className="text-center">Inicio de sesión</h2>
         <div className="mb-3">
           <label htmlFor="username" className="form-label">
             Nombre de Usuario:
@@ -86,11 +88,7 @@ const Login = () => {
         <button type="submit" className="btn btn-primary w-100">
           Iniciar Sesión
         </button>
-      </form>
-      {message && <p className="text-danger text-center">{message}</p>}
-
-      {/* Botón de Registro */}
-      <div className="text-center mt-3">
+        <div className="text-center mt-3">
         <Link className="link" to="/recoverPassword">
           ¿Olvidó su contraseña?
         </Link>
@@ -99,6 +97,8 @@ const Login = () => {
           Registrarse
         </button>
       </div>
+      </form>
+      {message && <p className="text-danger text-center">{message}</p>}
     </div>
   );
 };
