@@ -83,9 +83,21 @@ function Home() {
             alt="Second slide"
             style={{ height: "500px", objectFit: "cover", background: "white" }}
           />
-          <Carousel.Caption style={{top: "50%", transform: "translateY(-50%)"}}>
-            <h3>Primer Slide</h3>
-            <p>Este es un texto de ejemplo para la primera imagen.</p>
+         <Carousel.Caption
+            style={{
+            top: "50%",
+            transform: "translateY(-40%)",
+            padding: "20px",
+            borderRadius: "10px",
+            color: "#000",
+            textAlign: "left",
+           }}>
+              <h3 style={{ fontSize: "2.5rem", fontWeight: "bold", textShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)" }}>
+                 🎨 Es hora de pintar tu casa
+              </h3>
+              <p style={{ fontSize: "2rem", textShadow: "1px 1px 5px rgba(0, 0, 0, 0.3)" }}>
+                  Vení a nuestra sucursal y elegí la gama de colores que más te guste
+              </p>
           </Carousel.Caption>
         </Carousel.Item>
         <Carousel.Item>

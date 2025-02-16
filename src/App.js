@@ -16,7 +16,8 @@ import BuscadorProd from './Components/BuscardorProd.jsx';
 import CrearVentas from './Components/CrearVentas.jsx';
 import ViewProducts from './Components/ViewProducts.jsx';
 import ProductPage from './Components/ProductPage.jsx';
-import Cart from './Components/Cart.jsx';
+import Cart from './Components/Cart.jsx'
+import Footer from './Components/Footer.jsx';
 
 function App() {
 
@@ -59,6 +60,7 @@ function App() {
         {/* Redirigir al login por defecto */}
         <Route path="/" element={<Navigate to="/home" />} />
       </Routes>
+      <Footer/>
     </Router>
   );
 }

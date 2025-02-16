@@ -41,6 +41,10 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  height: 1000px;
-  margin: 0;
+  height: auto;
+  padding-bottom: 60px; /* Espacio para el footer */
+  position: relative;
+  min-height: 160vh; /* Asegura que la página tenga altura completa */
+  display: flex;
+  flex-direction: column;
 }
