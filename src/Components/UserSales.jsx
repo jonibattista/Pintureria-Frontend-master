@@ -1,78 +1,93 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const UserSales = () => {
-    const { id } = useAuth();
-    const [sales, setSales] = useState([]);
-    const [items, setItems] = useState([]);
+  const { id } = useAuth();
+  const [sales, setSales] = useState([]);
+  const [items, setItems] = useState([]);
 
-    useEffect(() => {
-        const fetchSales = async () => {
-              try {
-                const res = await fetch(process.env.REACT_APP_API_URL + "/Sales", { credentials: "include" })
-                const data = await res.json(); 
-                if (!data) return setSales([]);
-                const userSales = data.filter((sale) => sale.idUser === id);
-                setSales(userSales);
-              } catch (error) {
-                console.log(error);
-              }
-            };
-        
-        const fetchItems = async (idSale) => {
-            try {
-                const res = await fetch(`${process.env.REACT_APP_API_URL}/Rows/${idSale}`, { credentials: "include" })
-                const data = await res.json(); 
-                if (!data) return setItems([]);
-                setItems([...items, data]);
-            } catch (error) {
-                console.log(error);
-            }    
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/Sales`, { credentials: "include" });
+        const data = await res.json();
+        if (!data) return setSales([]);
+        const userSales = data.filter((sale) => sale.idUser === id);
+        setSales(userSales);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const fetchItems = async (idSale) => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/Rows/${idSale}`, { credentials: "include" });
+        const data = await res.json();
+        if (!data) return;
+        setItems((prevItems) => [...prevItems, ...data]); // Se usa spread para evitar sobrescribir
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const fetchAllItems = async () => {
+      try {
+        if (id) {
+          await fetchSales();
         }
-            
-        const fetchAllItems = async () => {
-            try {
-                if(id) {
-                    await fetchSales();
-                    if (sales.length > 0){
-                        for (const sale of sales) {
-                         await fetchItems(sale.id);
-                        }
-                    }
-                }     
-            } catch (error) {
-                console.log(error);    
-            }
-         }
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-        fetchAllItems();
-    }, [id]);
+    fetchAllItems();
+  }, [id]);
 
-    return (
-        <div style={{ marginTop: "5%", marginLeft: "1%" }}>
-            <h2>Tus compras</h2>
-            {items.length === 0 ? (
-                <li className="list-group-item d-flex justify-content-center align-items-center">
-                    No hay compras disponibles
-                </li>
-            ) : (
-                <ul className="list-group-item d-flex justify-content-between align-items-center">
-                    {items.map((item) => (
-                        <li key={item.id}>
-                            <img src={item.imgUrl || "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png"} alt={item.title} width="50" />
-                            <div>
-                                <h3>{item.title}</h3>
-                                <p>Cantidad: {item.quantity}</p>
-                                <p>Precio unitario: {item.price}</p>
-                                <p>Total: {item.total}</p>
-                                <p>Fecha: {new Date(item.createdAt).toLocaleDateString()}</p>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+  useEffect(() => {
+    if (sales.length > 0) {
+      sales.forEach((sale) => fetchItems(sale.id));
+    }
+  }, [sales]);
+
+  return (
+    <div className="container mt-5">
+      <h2 className="text-center mb-4">🛒 Tus Compras</h2>
+      {items.length === 0 ? (
+        <div className="alert alert-warning text-center">No hay compras disponibles</div>
+      ) : (
+        <div className="row justify-content-center">
+          {items.map((item) => (
+            <div key={item.id} className="col-md-8">
+              <div className="card mb-3 shadow-sm">
+                <div className="row g-0">
+                  <div className="col-md-4 d-flex align-items-center">
+                    <img
+                      src={item.imgUrl || "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png"}
+                      alt={item.title}
+                      className="img-fluid rounded shadow-sm"
+                      style={{ maxHeight: "150px", objectFit: "cover", width: "100%" }}
+                    />
+                  </div>
+                  <div className="col-md-8">
+                    <div className="card-body">
+                      <h5 className="card-title">{item.title}</h5>
+                      <p className="card-text">Cantidad: <strong>{item.quantity}</strong></p>
+                      <p className="card-text">Precio unitario: <span className="text-success">${item.price}</span></p>
+                      <p className="card-text">Total: <span className="fw-bold text-primary">${item.total}</span></p>
+                      <p className="card-text text-muted">
+                        Fecha: {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default UserSales;
