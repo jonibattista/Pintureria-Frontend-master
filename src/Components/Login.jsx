@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { URL } from "../utils/config.js";
 import { useAuth } from "./AuthContext";
 
 const Login = () => {
-  // const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  // const [role, setLocalRole] = useState("");
   const [message, setMessage] = useState("");
   const { setIsAuthenticated, setRole } = useAuth();
   const navigate = useNavigate();
@@ -16,10 +13,10 @@ const Login = () => {
     if (username && password) {
       const data = {
         userName: username,
-        pswHash: password,
+        password: password,
       };
       try {
-        const res = await fetch(URL + "/login", {
+        const res = await fetch(process.env.REACT_APP_API_URL + "/login", {
           method: "POST",
           credentials: "include",
           headers: {
@@ -56,9 +53,7 @@ const Login = () => {
   };
 
   return (
-    <div className="container" style={{ justifyContent: "center", 
-      textAlign: "center", Width: "800px", marginTop: "50px" }}>
-      
+    <div className="container" style={{ maxWidth: "20%", marginTop: "50px" }}> 
       <form onSubmit={handleLogin}>
       <h2 className="text-center">Inicio de sesión</h2>
         <div className="mb-3">
@@ -88,8 +83,8 @@ const Login = () => {
         <button type="submit" className="btn btn-primary w-100">
           Iniciar Sesión
         </button>
-        <div className="text-center mt-3">
-        <Link className="link" to="/recoverPassword">
+      <div className="text-center mt-3">
+        <Link className="link" to="/recover">
           ¿Olvidó su contraseña?
         </Link>
         <p>¿No tienes una cuenta?</p>
@@ -97,8 +92,10 @@ const Login = () => {
           Registrarse
         </button>
       </div>
-      </form>
       {message && <p className="text-danger text-center">{message}</p>}
+      </form>
+      {/* Botón de Registro */}
+
     </div>
   );
 };

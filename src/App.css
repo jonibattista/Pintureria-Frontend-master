@@ -42,9 +42,9 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   height: auto;
-  padding-bottom: 60px; /* Espacio para el footer */
+  padding-bottom: 60px; 
   position: relative;
-  min-height: 160vh; /* Asegura que la página tenga altura completa */
+  min-height: 160vh;
   display: flex;
   flex-direction: column;
 }

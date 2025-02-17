@@ -1,8 +1,6 @@
-// src/RegistroCliente.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { URL } from "../utils/config";
 
 const RegistroCliente = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +22,7 @@ const RegistroCliente = () => {
 
   const postUser = async () => {
     try {
-      const res = await fetch(URL + `/Users`, {
+      const res = await fetch(process.env.REACT_APP_API_URL + `/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,11 +39,11 @@ const RegistroCliente = () => {
 
   const validateData = async () => {
     try {
-      const res = await fetch(URL + `/Users/email/${formData.email}`);
+      const res = await fetch(process.env.REACT_APP_API_URL + `/users/email/${formData.email}`);
       const email = await res.json();
       if (email) return setMessage("Email existente");
       
-      const response = await fetch(URL + `/Users/name/${formData.userName}`);
+      const response = await fetch(process.env.REACT_APP_API_URL + `/users/name/${formData.userName}`);
       const name = await response.json();
       if (name) return setMessage("Nombre de usuario existente");
 
@@ -64,7 +62,7 @@ const RegistroCliente = () => {
       if (data) {
         // Mostrar mensaje de éxito y redirigir al login después de unos segundos
         setSubmitted(true);
-        setTimeout(() => {navigate("/login");}, 2000); 
+        setTimeout(() => {navigate("/login");}, 4000); 
       }
     }
   };
@@ -128,7 +126,8 @@ const RegistroCliente = () => {
             <div className="alert alert-success mt-3" role="alert">
               ¡Cliente registrado con éxito! Redirigiendo al inicio de sesión...
             </div>
-          )}
+          )
+          }
           {message && <p className="text-danger text-center">{message}</p>}
         </div>
       </div>

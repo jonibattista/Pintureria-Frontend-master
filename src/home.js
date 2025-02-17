@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import NavBar from './Components/NavBar';
 import Carousel from 'react-bootstrap/Carousel';
-import frente from "./utils/images/frente.jpg"
-import carru2 from "./utils/images/carru2.jpg"
-import carru3 from "./utils/images/carru3.jpg"
 import CategoryCard from './Components/CategoryCard';
 import { getLocalStorage,setLocalStorage } from './utils/localStorage';
-import { URL } from './utils/config';
 import './App.css';
-
+import carru2 from "./utils/images/carru2.jpg"
+import carru3 from "./utils/images/carru3.jpg"
+import frente from "./utils/images/frente.jpg"
 /**
  * Componente Home que obtiene y muestra categorías junto con un carrusel y una barra de navegación.
  *
@@ -33,39 +30,37 @@ function Home() {
     const fetchcat = async () => {
           const local = getLocalStorage("category");
           try {
-            const res = await fetch(URL + "/category", { credentials: "include" });
-            const data = await res.json();
-            if (!Array.isArray(data)) {
-              console.warn("La API no devolvió un array, usando datos locales.");
-              return setcategorias(local?.datos || []); // Fallback a datos locales o array vacío
-      }
-      setcategorias(data);
-      setLocalStorage(data, "category");
+            await fetch(process.env.REACT_APP_API_URL + "/category", { credentials: "include" })
+              .then((res) => res.json())
+              .then((data) => {
+                if (!data) {if(local) return setcategorias(local.datos);}
+                setcategorias(data);
+                setLocalStorage(data, "category");
+              });
           } catch (error) {
-            console.log("Error al obtener categorías:",error);
-            setcategorias(local?.datos || []); // Fallback en caso de error
+            console.log(error);
           }
         };
       fetchcat()
   },[])
 
   return (
-    <div style={{ 
-      display: "flex", 
-      flexDirection: "column", 
-      alignItems: "center", 
-      justifyContent: "center", 
-      textAlign: "center",
-      width: "100%", 
-    }}>
-      <NavBar />
-    
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        width: "100%",
+      }}
+    >
       <Carousel
         style={{
           maxHeight: "500px",
-          marginTop: "8%",
+          marginTop: "5%",
           backgroundColor: "black",
-          width: "80%", // ✅ Hace que el carrusel no sea demasiado ancho
+          width: "97%", // ✅ Hace que el carrusel no sea demasiado ancho
         }}
       >
         <Carousel.Item>
@@ -83,21 +78,34 @@ function Home() {
             alt="Second slide"
             style={{ height: "500px", objectFit: "cover", background: "white" }}
           />
-         <Carousel.Caption
+          <Carousel.Caption
             style={{
-            top: "50%",
-            transform: "translateY(-40%)",
-            padding: "20px",
-            borderRadius: "10px",
-            color: "#000",
-            textAlign: "left",
-           }}>
-              <h3 style={{ fontSize: "2.5rem", fontWeight: "bold", textShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)" }}>
-                 🎨 Es hora de pintar tu casa
-              </h3>
-              <p style={{ fontSize: "2rem", textShadow: "1px 1px 5px rgba(0, 0, 0, 0.3)" }}>
-                  Vení a nuestra sucursal y elegí la gama de colores que más te guste
-              </p>
+              top: "50%",
+              transform: "translateY(-40%)",
+              padding: "20px",
+              borderRadius: "10px",
+              color: "#000",
+              textAlign: "left",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "2.5rem",
+                fontWeight: "bold",
+                textShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              🎨 Es hora de pintar tu casa
+            </h3>
+            <p
+              style={{
+                fontSize: "2rem",
+                textShadow: "1px 1px 5px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              Vení a nuestra sucursal y elegí la gama de colores que más te
+              guste
+            </p>
           </Carousel.Caption>
         </Carousel.Item>
         <Carousel.Item>
@@ -105,21 +113,24 @@ function Home() {
             className="d-block w-100"
             src={carru3}
             alt="Third slide"
-            style={{ height: "500px", objectFit: "contain", background: "white" }}
+            style={{
+              height: "500px",
+              objectFit: "contain",
+              background: "white",
+            }}
           />
         </Carousel.Item>
       </Carousel>
-    
       <div
-        style={{display: "flex", flexWrap: "wrap", justifyContent: "center" }} >
-        {categorias.map((category, index) => (
-          <div key={index} style={{ margin: "10px", cursor: "pointer" }}>
+        style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}
+      >
+        {categorias.map((category) => (
+          <div style={{ margin: "10px", cursor: "pointer" }}>
             <CategoryCard category={category} />
           </div>
         ))}
       </div>
     </div>
-    
   );
 }
 

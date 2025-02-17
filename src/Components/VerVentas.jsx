@@ -1,60 +1,102 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { URL } from "../utils/config";
 import { getLocalStorage, setLocalStorage } from "../utils/localStorage";
+import { searchDesc } from "../utils/search";
 
 const VerVentas = () => {
   const [ventas, setVentas] = useState([]);
   const [showRows, setShowRows] = useState(false);
   const [rowsSale, setRowsSale] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [clientes, setClientes] = useState([]);
+
 
   useEffect(() => {
-    const fetchData = async (endpoint, setState, storageKey) => {
-      const local = getLocalStorage(storageKey);
+    const fetchSale = async () => {
+      const local = getLocalStorage("sales");
       try {
-        const res = await fetch(`${URL}/${endpoint}`, { credentials: "include" });
-        const data = await res.json();
-        if (!data) return setState(local.datos);
-        setState(data);
-        setLocalStorage(data, storageKey);
+        await fetch(process.env.REACT_APP_API_URL + "/Sales", { credentials: "include" })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data) return setVentas(local.datos);
+            setVentas(data);
+            setLocalStorage(data, "sales");
+          });
       } catch (error) {
-        console.log(`Error al obtener ${storageKey}:`, error);
+        console.log(error);
+      }
+    };
+    const fetchEmp = async () => {
+      const local = getLocalStorage("employees");
+      try {
+        await fetch(process.env.REACT_APP_API_URL + "/Employees", { credentials: "include" })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data) return setEmpleados(local.datos);
+            setEmpleados(data);
+            setLocalStorage(data, "employees");
+          });
+      } catch (error) {
+        console.log(error);
       }
     };
 
-    fetchData("Sales", setVentas, "sales");
+    const fetchClient = async () => {
+      const local = getLocalStorage("clients");
+      try {
+        await fetch(process.env.REACT_APP_API_URL + "/Clients", { credentials: "include" })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data) return setClientes(local.datos);
+            setClientes(data);
+            setLocalStorage(data, "clients");
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchClient();
+    fetchEmp();
+    fetchSale();
   }, []);
 
+  
   const cargaFilasVenta = async (id) => {
     try {
-      const res = await fetch(`${URL}/Rows/${id}`, { credentials: "include" });
+      const res = await fetch(process.env.REACT_APP_API_URL + `/Rows/${id}`, { credentials: "include" });
       const data = await res.json();
       setRowsSale(data);
     } catch (error) {
-      console.log("Error al cargar productos de venta", error);
+      console.log("error al cargar productos de venta");
     }
   };
 
+  // Función para eliminar venta
   const deleteVenta = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar esta venta?")) return;
-    try {
-      await fetch(`${URL}/Sales/${id}`, { method: "DELETE" });
-      setVentas(ventas.filter((v) => v.id !== id));
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de eliminar esta venta?"
+    );
+    if (confirmDelete) {
+      await fetch(process.env.REACT_APP_API_URL + `/Sales/${id}`, {
+        method: "DELETE",
+      });
+      const updatedVentas = ventas.filter((v) => v.id !== id);
+      cargaFilasVenta(id);
+      setVentas(updatedVentas);
       setShowRows(false);
-    } catch (error) {
-      console.log("Error al eliminar la venta", error);
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">Listado de Ventas</h2>
-      <div className="table-responsive">
+    <div className="container mt-5" >
+      <h2 className="text-center mb-4" style={{marginTop:"8%"}}>Listado de Ventas</h2>
+      <div className="table-responsive" >
         <table className="table table-striped table-hover">
           <thead className="table-dark">
             <tr>
               <th>ID</th>
               <th>Cliente</th>
+              <th>Usuario</th>
               <th>Empleado</th>
               <th>Sucursal</th>
               <th>Fecha</th>
@@ -67,11 +109,12 @@ const VerVentas = () => {
               ventas.map((venta) => (
                 <tr key={venta.id}>
                   <td>{venta.id}</td>
-                  <td>{venta.idClient}</td>
-                  <td>{venta.idEmp}</td>
+                  <td>{searchDesc(clientes,venta.idClient,"name")|| "-"}</td>
+                  <td>{venta.idUser || "-"}</td>
+                  <td>{searchDesc(empleados,venta.idEmp,"name")}</td>
                   <td>{venta.idBranch}</td>
-                  <td>{new Date(venta.createdAt).toLocaleDateString()}</td>
-                  <td>${venta.total.toFixed(2)}</td>
+                  <td>{venta.createdAt}</td>
+                  <td>${venta.total}</td>
                   <td>
                     <button
                       onClick={() => deleteVenta(venta.id)}
@@ -84,9 +127,9 @@ const VerVentas = () => {
                         cargaFilasVenta(venta.id);
                         setShowRows(!showRows);
                       }}
-                      className="btn btn-info btn-sm"
+                      className="btn btn-info btn-sm "
                     >
-                      {showRows ? "Cerrar" : "Ver Detalles"}
+                      {showRows ? "Cerrar" : "Abrir"}
                     </button>
                   </td>
                 </tr>
@@ -96,35 +139,49 @@ const VerVentas = () => {
                 <td colSpan={7} className="text-center">No hay ventas registradas</td>
               </tr>
             )}
+            
+          {showRows && (
+            <div className="modal show d-block" tabIndex="-1">
+              <div className="modal-dialog">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Detalles de la Venta</h5>
+                    <button type="button" className="btn-close" onClick={() => setShowRows(false)}></button>
+                  </div>
+                  <div className="modal-body">
+                    <table className="table table-bordered">
+                      <thead className="table-dark">
+                        <tr>
+                          <th>Producto</th>
+                          <th>Precio</th>
+                          <th>Cantidad</th>
+                          <th>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rowsSale.map((row) => (
+                          <tr key={row.id}>
+                            <td>{row.description}</td>
+                            <td>{row.price}</td>
+                            <td>{row.quantity}</td>
+                            <td>{row.total}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowRows(false)}>
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           </tbody>
         </table>
       </div>
-
-      {showRows && rowsSale.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-center">Detalles de Venta</h3>
-          <table className="table table-bordered">
-            <thead className="table-secondary">
-              <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rowsSale.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.description}</td>
-                  <td>${row.price.toFixed(2)}</td>
-                  <td>{row.amount}</td>
-                  <td>${row.total.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };
